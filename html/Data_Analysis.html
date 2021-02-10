@@ -1,0 +1,260 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MATLAB Automatic Wind Tunnel Data Analysis</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-05-14"><meta name="DC.source" content="Data_Analysis.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>MATLAB Automatic Wind Tunnel Data Analysis</h1><!--introduction--><p>A script designed to read values from a .txt file whose first column is time and second column is force in Newtons x 10^-2. The inputs required are the time intervals to perform time averaging of the forces in each interval matrix (each pair of numbers is t0, tf). These can be found using Data Viewer and selecting the first and last data points of the data at a certain speed in the wind tunnel.</p><p>Currently, the speeds are correlated to the data through the frequency of the wind tunnel fan's inverter. The speed matrix has the frequency of the inverter in one column and wind speeds in m/s in the other.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Clear Workspace and Instantiate Inputs</a></li><li><a href="#2">Null Force Data Analysis</a></li><li><a href="#6">Test Object Data Analysis</a></li></ul></div><h2 id="1">Clear Workspace and Instantiate Inputs</h2><pre class="codeinput">clear
+close <span class="string">all</span>;
+NullForceFileID=<span class="string">"Threaded Sting Null Force.txt"</span>; <span class="comment">%File name of sting only force data</span>
+TestForceFileID=<span class="string">"Large Garbage Banner.txt"</span>; <span class="comment">%File name of test object force data</span>
+<span class="comment">% Sting Only Time Intervals (Ascending, 10 Hz to 60 Hz in 5 Hz intervals)</span>
+null_int=[586.8 601.5;610.5 628.1;634.3 653.8;660 680.1; 686.7 708.9;715.3 738.1;744.6 768.6;774.7 805.5; 811.6 841.5;442.1 474.3;481.4 518.8];
+<span class="comment">% Test Object Time Intervals (Ascending, 10 Hz to 60 Hz in 5 Hz intervals)</span>
+test_int=[38 46.1; 63.3 79.6; 80.9 117; 126.5 157.2; 164 189.9; 206.1 234.4; 241 269.6; 275.2 319.6; 327.1 356.1; 363.5 404.5; 411.2 442.3];
+<span class="comment">% Anemometer Data (Ascending, 10 Hz to 60 Hz in 5 Hz intervals)</span>
+speeds=[10 15 20 25 30 35 40 45 50 55 60;5.68 7.62 10.43 13.10 16.48 19.47 22.59 25.84 28.25 31.05 34.40];
+</pre><h2 id="2">Null Force Data Analysis</h2><p>This section takes the force data of just the sting, so that it may be subtracted from the force data of test objects.</p><p><b>Data Extraction</b></p><pre class="codeinput">fileID=fopen(NullForceFileID,<span class="string">'r'</span>);
+A=fscanf(fileID,<span class="string">'%f %f'</span>,[2 Inf]);
+x=A(1,:)*1e5;
+y=A(2,:);
+null_arr=[x;y];
+</pre><pre class="codeoutput error">Error using fscanf
+Invalid file identifier. Use fopen to generate a valid file identifier.
+
+Error in Data_Analysis (line 30)
+A=fscanf(fileID,'%f %f',[2 Inf]);
+</pre><p><b>Raw Data Plotting</b></p><pre class="codeinput">figure(1) <span class="comment">%This tells MATLAB that this is the first figure.</span>
+plot(x,y,<span class="string">'ro'</span>) <span class="comment">%curves(index,:) where index is the row number (each polynomial fit is a row) and : yields the vector at that row.</span>
+xlabel(<span class="string">'Time (sec)'</span>)
+ylabel(<span class="string">'Force (10^{-2} N)'</span>)
+title(<span class="string">"Raw Data, Sting Only"</span>)
+grid
+axis([0 Inf 0 Inf])
+</pre><p><b>Time Averaging and Uncertainty Calculation for Force versus Velocity</b></p><pre class="codeinput">null=[];
+<span class="keyword">for</span> i=1:length(null_int) <span class="comment">% For each frequency/wind speed tested</span>
+    t0=null_int(i,1); <span class="comment">% Starting time coordinate</span>
+    tf=null_int(i,2); <span class="comment">% Ending time coordinate</span>
+    [~, idx1]=min(abs(null_arr(1,:)-t0)); <span class="comment">% Find index of closest time coordinate to t0</span>
+    [~, idx2]=min(abs(null_arr(1,:)-tf)); <span class="comment">% Find index of closest time coordinate to tf</span>
+    subarray=null_arr(:,idx1:idx2); <span class="comment">% Subarray contains all the values between, to be time averaged</span>
+    avg=mean(subarray(2,:)); <span class="comment">% Calculate the mean force value</span>
+    unc=std(subarray(2,:)); <span class="comment">%Calculate the uncertainty in force value as the standard deviation</span>
+    null=[null,[avg;unc]];
+<span class="keyword">end</span>
+</pre><p><b>Data Plotting, Force versus Time</b></p><pre class="codeinput">figure(2)
+null=[speeds;null];
+errorbar(null(2,:),null(3,:),null(4,:),<span class="string">'--r'</span>,<span class="string">'LineWidth'</span>,1);
+xlabel(<span class="string">'Velocity (m/s)'</span>)
+ylabel(<span class="string">'Force (10^{-2} N)'</span>)
+title(<span class="string">"Force vs Velocity, Sting Only"</span>)
+grid
+axis([0 Inf 0 Inf])
+</pre><h2 id="6">Test Object Data Analysis</h2><p>This section takes the force data of the test object.</p><p><b>Data Extraction</b></p><pre class="codeinput">fileID=fopen(TestForceFileID,<span class="string">'r'</span>);
+A=fscanf(fileID,<span class="string">'%f %f'</span>,[2 Inf]);
+t=A(1,:)*1e5;
+f=A(2,:);
+test_arr=[t;f];
+</pre><p><b>Raw Data Plotting</b></p><pre class="codeinput">figure(3)
+plot(t,f,<span class="string">'bo'</span>) <span class="comment">%curves(index,:) where index is the row number (each polynomial fit is a row) and : yields the vector at that row.</span>
+xlabel(<span class="string">'Time (sec)'</span>)
+ylabel(<span class="string">'Force (10^{-2} N)'</span>)
+temp_title=[<span class="string">'Raw Data, '</span>,extractBefore(TestForceFileID,<span class="string">".txt"</span>)];
+title(convertStringsToChars(<span class="string">"Raw Data, "</span>+extractBefore(TestForceFileID,<span class="string">".txt"</span>))) <span class="comment">% Automatic Graph Names</span>
+grid
+axis([0 Inf 0 Inf])
+</pre><p><b>Time Averaging and Uncertainty Calculation for Force versus Velocity</b></p><pre class="codeinput">data=[];
+<span class="keyword">for</span> i=1:length(test_int) <span class="comment">% For each frequency/wind speed tested</span>
+    t0=test_int(i,1); <span class="comment">% Starting time coordinate</span>
+    tf=test_int(i,2); <span class="comment">% Ending time coordinate</span>
+    [~, idx1]=min(abs(test_arr(1,:)-t0)); <span class="comment">% Find index of closest time coordinate to t0</span>
+    [~, idx2]=min(abs(test_arr(1,:)-tf)); <span class="comment">% Find index of closest time coordinate to tf</span>
+    subarray=test_arr(:,idx1:idx2); <span class="comment">% Subarray contains all the values between, to be time averaged</span>
+    avg=mean(subarray(2,:)); <span class="comment">% Calculate the mean force value</span>
+    unc=std(subarray(2,:)); <span class="comment">% Calculate the uncertainty in force value as the standard deviation</span>
+    data=[data,[avg;unc]];
+<span class="keyword">end</span>
+</pre><p><b>Data Plotting, Force versus Time</b></p><pre class="codeinput">figure(4)
+data=[speeds;data];
+data(3,:)=data(3,:)-null(3,:);
+errorbar(data(2,:),data(3,:),data(4,:),<span class="string">'--b'</span>,<span class="string">'LineWidth'</span>,1);
+xlabel(<span class="string">'Velocity (m/s)'</span>)
+ylabel(<span class="string">'Force (10^{-2} N)'</span>)
+title(convertStringsToChars(<span class="string">"Force vs Velocity, "</span>+extractBefore(TestForceFileID,<span class="string">".txt"</span>))) <span class="comment">% Automatic Graph Names</span>
+grid
+axis([0 Inf 0 Inf])
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% MATLAB Automatic Wind Tunnel Data Analysis
+% A script designed to read values from a .txt file whose first column is
+% time and second column is force in Newtons x 10^-2. The inputs required
+% are the time intervals to perform time averaging of the forces in each
+% interval matrix (each pair of numbers is t0, tf). These can be found
+% using Data Viewer and selecting the first and last data points of the
+% data at a certain speed in the wind tunnel.
+% 
+% Currently, the speeds are correlated to the data through the frequency of
+% the wind tunnel fan's inverter. The speed matrix has the frequency of the
+% inverter in one column and wind speeds in m/s in the other.
+
+%% Clear Workspace and Instantiate Inputs
+clear
+close all;
+NullForceFileID="Threaded Sting Null Force.txt"; %File name of sting only force data
+TestForceFileID="Large Garbage Banner.txt"; %File name of test object force data
+% Sting Only Time Intervals (Ascending, 10 Hz to 60 Hz in 5 Hz intervals)
+null_int=[586.8 601.5;610.5 628.1;634.3 653.8;660 680.1; 686.7 708.9;715.3 738.1;744.6 768.6;774.7 805.5; 811.6 841.5;442.1 474.3;481.4 518.8];
+% Test Object Time Intervals (Ascending, 10 Hz to 60 Hz in 5 Hz intervals)
+test_int=[38 46.1; 63.3 79.6; 80.9 117; 126.5 157.2; 164 189.9; 206.1 234.4; 241 269.6; 275.2 319.6; 327.1 356.1; 363.5 404.5; 411.2 442.3];
+% Anemometer Data (Ascending, 10 Hz to 60 Hz in 5 Hz intervals)
+speeds=[10 15 20 25 30 35 40 45 50 55 60;5.68 7.62 10.43 13.10 16.48 19.47 22.59 25.84 28.25 31.05 34.40];
+%% Null Force Data Analysis
+% This section takes the force data of just the sting, so that it may be
+% subtracted from the force data of test objects.
+%
+% *Data Extraction*
+fileID=fopen(NullForceFileID,'r');
+A=fscanf(fileID,'%f %f',[2 Inf]);
+x=A(1,:)*1e5;
+y=A(2,:);
+null_arr=[x;y];
+%%
+% *Raw Data Plotting*
+figure(1) %This tells MATLAB that this is the first figure.
+plot(x,y,'ro') %curves(index,:) where index is the row number (each polynomial fit is a row) and : yields the vector at that row.
+xlabel('Time (sec)')
+ylabel('Force (10^{-2} N)')
+title("Raw Data, Sting Only")
+grid
+axis([0 Inf 0 Inf])
+%%
+% *Time Averaging and Uncertainty Calculation for Force versus Velocity*
+null=[];
+for i=1:length(null_int) % For each frequency/wind speed tested
+    t0=null_int(i,1); % Starting time coordinate
+    tf=null_int(i,2); % Ending time coordinate
+    [~, idx1]=min(abs(null_arr(1,:)-t0)); % Find index of closest time coordinate to t0
+    [~, idx2]=min(abs(null_arr(1,:)-tf)); % Find index of closest time coordinate to tf
+    subarray=null_arr(:,idx1:idx2); % Subarray contains all the values between, to be time averaged
+    avg=mean(subarray(2,:)); % Calculate the mean force value
+    unc=std(subarray(2,:)); %Calculate the uncertainty in force value as the standard deviation
+    null=[null,[avg;unc]];
+end
+%%
+% *Data Plotting, Force versus Time*
+figure(2)
+null=[speeds;null];
+errorbar(null(2,:),null(3,:),null(4,:),'REPLACE_WITH_DASH_DASHr','LineWidth',1);
+xlabel('Velocity (m/s)')
+ylabel('Force (10^{-2} N)')
+title("Force vs Velocity, Sting Only")
+grid
+axis([0 Inf 0 Inf])
+
+%% Test Object Data Analysis
+% This section takes the force data of the test object.
+%
+% *Data Extraction*
+fileID=fopen(TestForceFileID,'r');
+A=fscanf(fileID,'%f %f',[2 Inf]);
+t=A(1,:)*1e5;
+f=A(2,:);
+test_arr=[t;f];
+%%
+% *Raw Data Plotting*
+figure(3)
+plot(t,f,'bo') %curves(index,:) where index is the row number (each polynomial fit is a row) and : yields the vector at that row.
+xlabel('Time (sec)')
+ylabel('Force (10^{-2} N)')
+temp_title=['Raw Data, ',extractBefore(TestForceFileID,".txt")];
+title(convertStringsToChars("Raw Data, "+extractBefore(TestForceFileID,".txt"))) % Automatic Graph Names
+grid
+axis([0 Inf 0 Inf])
+%%
+% *Time Averaging and Uncertainty Calculation for Force versus Velocity*
+data=[];
+for i=1:length(test_int) % For each frequency/wind speed tested
+    t0=test_int(i,1); % Starting time coordinate
+    tf=test_int(i,2); % Ending time coordinate
+    [~, idx1]=min(abs(test_arr(1,:)-t0)); % Find index of closest time coordinate to t0
+    [~, idx2]=min(abs(test_arr(1,:)-tf)); % Find index of closest time coordinate to tf
+    subarray=test_arr(:,idx1:idx2); % Subarray contains all the values between, to be time averaged
+    avg=mean(subarray(2,:)); % Calculate the mean force value
+    unc=std(subarray(2,:)); % Calculate the uncertainty in force value as the standard deviation
+    data=[data,[avg;unc]];
+end
+%%
+% *Data Plotting, Force versus Time*
+figure(4)
+data=[speeds;data];
+data(3,:)=data(3,:)-null(3,:);
+errorbar(data(2,:),data(3,:),data(4,:),'REPLACE_WITH_DASH_DASHb','LineWidth',1);
+xlabel('Velocity (m/s)')
+ylabel('Force (10^{-2} N)')
+title(convertStringsToChars("Force vs Velocity, "+extractBefore(TestForceFileID,".txt"))) % Automatic Graph Names
+grid
+axis([0 Inf 0 Inf])
+##### SOURCE END #####
+--></body></html>
