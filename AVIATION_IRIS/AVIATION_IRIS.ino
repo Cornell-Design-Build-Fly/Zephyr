@@ -61,7 +61,7 @@ HX711 scale7;
 float calibration_factor = -450; //-7050 worked for my 440lb max scale setup and -430 suppposedly worked for grsms set-up with the metal blocks
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   //Serial.println("HX711 calibration sketch");
   //Serial.println("Remove all weight from scale");
   //Serial.println("After readings begin, place known weight on scale");
@@ -150,7 +150,6 @@ void loop() {
 
   if (Serial.available() > 0) {    // is a character available?
     temp = Serial.parseInt();
-    Serial.println(temp,DEC);
   }
   if(temp>0&&temp<1023){
     Dynamixel.move(1,temp);

@@ -44,7 +44,7 @@ while ~stop
     end
     A=str2num(readline(s)); % Read Distance Value from Serial
     t =  datetime('now') - startTime; % Get current time
-    tmp=seconds(t)
+    tmp=seconds(t);
     data=[data; [seconds(t) A]];
     addpoints(athena,datenum(t),A(1)) % Add points to animation
     addpoints(minerva,datenum(t),A(2))
